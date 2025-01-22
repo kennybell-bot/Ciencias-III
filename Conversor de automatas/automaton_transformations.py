@@ -53,7 +53,6 @@ def convert_afn_lambda_to_afn(automaton: AFNLambdaAutomaton) -> AFNAutomaton:
         final_states=list(new_final_states),
     )
 
-
 def convert_afn_to_afd(automaton: AFNAutomaton) -> AFDAutomaton:
     """
     Convierte un AFN a un AFD utilizando el algoritmo de subconjuntos.
@@ -86,6 +85,7 @@ def convert_afn_to_afd(automaton: AFNAutomaton) -> AFDAutomaton:
                 if symbol in automaton.transitions.get(state, {}):
                     destinations.update(automaton.transitions[state][symbol])
 
+            # Ajustar el formato de las transiciones
             if destinations:
                 destination_closure = frozenset(destinations)
                 if destination_closure not in visited:
@@ -94,7 +94,9 @@ def convert_afn_to_afd(automaton: AFNAutomaton) -> AFDAutomaton:
                     new_states.append(new_label)
                     queue.append(destination_closure)
                     state_counter += 1
-                new_transitions[current_label][symbol] = visited[destination_closure]
+                new_transitions[current_label][symbol] = [visited[destination_closure]]
+            else:
+                new_transitions[current_label][symbol] = []  # Lista vacía si no hay transición
 
         # Verificar si el estado actual contiene algún estado final del AFN
         if any(state in automaton.final_states for state in current_set):

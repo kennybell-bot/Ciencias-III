@@ -9,3 +9,6 @@ pycache/
 #Ignorar archivos de configuración de IDE
 .idea/
 .vscode/
+
+#Ignorar imagenes
+*.png
