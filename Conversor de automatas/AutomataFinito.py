@@ -16,6 +16,9 @@ class AutomataFinito:
 
     def getEstados(self):
         return self.conjuntoEstados
+    
+    def setEstadoInicial(self, estadoInicial):
+        self.estadoInicial = estadoInicial
 
     def __str__(self):
         return f"AutomataFinito(estadoInicial={self.estadoInicial}, estadoFinal={self.estadoFinal}, conjuntoEstados={self.conjuntoEstados})"

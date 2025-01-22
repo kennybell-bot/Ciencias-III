@@ -14,86 +14,87 @@ root.title("Convertidor de automatas")
 root.resizable(True, True)
 root.geometry("800x600") 
 
-#Combobox de opciones grafos
-labelOPcionesGrafos = Label(root, text="Seleccione el tipo de autómata que desea visualizar")
-combo = ttk.Combobox(root, values=["AFN", "AFD", "AFN-lamda"])
-labelOPcionesGrafos.pack()
-combo.pack()
 
-#Seccion agregar nuevo estado
-labelAgregarEstados = Label(root, text="Agregar estado")
-entryEstadoNUuevo = Entry(root)
-labelEstadosConectados = Label(root, text="Ingrese los estados conectados, separados por coma (,)")
-entryEstadosConectados = Entry(root)
-labelValorConexion = Label(root, text="Ingrese el valor de la conexión")
-entryValorConexion = Entry(root)
-botonAgregarEstado = Button(root, text="Agregar estado")
-labelAgregarEstados.pack()
-entryEstadoNUuevo.pack()
-labelEstadosConectados.pack()
-entryEstadosConectados.pack() 
-labelValorConexion.pack()
-entryValorConexion.pack()
-botonAgregarEstado.pack()
 
 #Creacion de la vizualiacion del automata
 figure = plt.Figure(figsize=(5, 5), dpi=100)
 ax = figure.add_subplot(111)
 graph = nx.DiGraph()  
-graph.add_edge(1, 4, label='a')
-graph.add_edge(1, 2, label='b')
-graph.add_edge(1, 3, label='c')
 pos = nx.spring_layout(graph)
 nx.draw(graph, pos, ax=ax, with_labels=True, node_color='skyblue', node_size=2000, edge_color='k', font_size=16)
-edge_labels = nx.get_edge_attributes(graph, 'label')
-nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels, ax=ax)
 canvas = FigureCanvasTkAgg(figure, master=root)
 canvas.get_tk_widget().pack()
 canvas.draw()
 
+#Funciones para dibujar el grafo
 def agregarNodo(nodo_id):
     graph.add_node(nodo_id)
+    actualizarGrafo()
+
+def agregarEdge(nodo_partida, nodo_llegada, label):
+    graph.add_edge(nodo_partida, nodo_llegada, label=label)
     actualizarGrafo()
 
 def actualizarGrafo():
     ax.clear()
     pos = nx.spring_layout(graph)
-    nx.draw(graph, pos, ax=ax, with_labels=True, node_color='skyblue', node_size=2000, edge_color='k', font_size=16)
+    nx.draw(graph, pos, ax=ax, with_labels=True, node_color='skyblue', node_size=200, edge_color='k', font_size=6)
+    global edge_labels
     edge_labels = nx.get_edge_attributes(graph, 'label')
     nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels, ax=ax)
     canvas.draw()
 
-#Prueba automata a partir del grafo
-diccionario = {}
+#Inicializacion del grafico
+labelOPcionesGrafos = Label(root, text="Seleccione el tipo de autómata que desea visualizar")
+combo = ttk.Combobox(root, values=["AFN", "AFD", "AFN-lamda"])
+botonInicializar = Button(root, text="Inicializar")
+labelOPcionesGrafos.pack()
+combo.pack()
 
-#Inicializar estados del grafo en la clase
-estados = list(graph.nodes())
-automataFinito = AutomataFinito(estados[0])
-def agreagarEstados():
+#Agregacion de conexion
+labelAgregarConexion = Label(root, text="Agregar conexion")
+labelEstadoPartida = Label(root, text="Estado de partida")
+entryEstadoPartida = Entry(root)
+labelEstadoConectado = Label(root, text="Estados conectados separados por coma")
+entryEstadoConectado = Entry(root)
+labelValorConexion = Label(root, text="Valor de la conexion")
+entryValorConexion = Entry(root)
+botonAgregarConexion = Button(root, text="Agregar")
+labelEstadoConectado.pack()
+entryEstadoConectado.pack()
+labelValorConexion.pack()   
+entryValorConexion.pack()   
+botonAgregarConexion.pack()
+
+def agreagarConexionNueva():
+    estadosConectados = entryEstadoConectado.get().split(",")
+    agregarEdge(estadosConectados[0], estadosConectados[1], entryValorConexion.get())
+
+botonAgregarConexion.config(command=agreagarConexionNueva)
+
+#Establecimiento del automata
+estados = list(graph.nodes)
+#Automata
+def generarAutomata():
+    agregarNodo("q0")
+    estados = list(graph.nodes)
+    conexiones = nx.get_edge_attributes(graph, 'label')
+    return AutomataFinito(Estado(estados[0]))
+
+automata = generarAutomata()
+
+def agregarEstaodosAutomata():
     for i in estados:
-        automataFinito.agregarEstado(Estado(i))
+        AutomataFinito.agregarEstado(Estado(i))
 
-    for i in automataFinito.getEstados():
-        diccionario[i.getID()] = i
+def prueba():
+    agregarEstaodosAutomata()
+    print("automata")
 
+    for i in automata.getEstados():
+        print(i)
 
-def agreagarConexiones():
-    conexiones = list(graph.edges())
-    for i in conexiones:
-        diccionario[i[0]].agregarConexion(diccionario[i[1]], "a")
-
-agreagarEstados()
-agreagarConexiones()
-
-for i in automataFinito.getEstados():
-    print(i)
-
-#Seccion de la conversion
-labelConversion = Label(root, text="Sleccion el automata al que desea convertir")
-comboConversion = ttk.Combobox(root, values=["AFN", "AFD", "AFN-lamda"])
-labelConversion.pack()
-comboConversion.pack()
-
-print(edge_labels)
+botonInicializar.config(command=prueba)
+botonInicializar.pack()
 
 root.mainloop()
