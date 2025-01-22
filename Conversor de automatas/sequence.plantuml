@@ -1,0 +1,85 @@
+@startuml
+title Diagrama de Clases - Convertidor de Autómatas
+
+' Clase base Automaton y sus subclases
+package "automaton_model.py" {
+    class Automaton {
+        - states: list[str]
+        - alphabet: list[str]
+        - transitions: dict[str, dict[str, list[str]]]
+        - start_state: str
+        - final_states: list[str]
+        + validate(): bool
+    }
+
+    class AFNLambdaAutomaton {
+        + __init__(states, alphabet, transitions, start_state, final_states)
+    }
+
+    class AFNAutomaton {
+        <<inherits Automaton>>
+    }
+
+    class AFDAutomaton {
+        <<inherits Automaton>>
+        + validate(): bool
+    }
+}
+
+
+AFNLambdaAutomaton --> Automaton
+AFNAutomaton --> Automaton
+AFDAutomaton --> Automaton
+
+' Modulo de Transformaciones
+package "automaton_transformations.py" {
+    class ConvertAFN {
+        + convert_afn_lambda_to_afn(automaton: AFNLambdaAutomaton): AFNAutomaton
+        + convert_afn_to_afd(automaton: AFNAutomaton): AFDAutomaton
+    }
+
+    note top of ConvertAFN
+        Este módulo se encarga de realizar
+        las conversiones entre los diferentes
+        tipos de autómatas:
+        - AFN-λ -> AFN
+        - AFN -> AFD
+    end note
+}
+
+' Modulo de Visualización
+package "automaton_visualization.py" {
+    class DrawAutomaton {
+        + draw_automaton(automaton: Automaton, output_file: str): void
+    }
+
+    note bottom of DrawAutomaton
+        Genera gráficos para cualquier tipo
+        de autómata y los guarda en archivos.
+    end note
+}
+
+' Modulo Principal
+package "main.py" {
+    class MainMenu {
+        + load_automaton_from_json(file_path: str, type: str): Automaton
+        + main_menu(): void
+        + handle_file_selection(): void
+        + process_automaton(file_path: str, type: str): void
+        + handle_conversion_afn_lambda(automaton: AFNLambdaAutomaton): void
+        + handle_conversion_afn(automaton: AFNAutomaton): void
+    }
+
+    note bottom of MainMenu
+        Orquesta las interacciones del usuario:
+        - Carga de archivos JSON.
+        - Manejo de conversiones.
+        - Generación de gráficos.
+    end note
+}
+
+MainMenu ..> Automaton : usa
+MainMenu ..> ConvertAFN : invoca
+MainMenu ..> DrawAutomaton : invoca
+
+@enduml
