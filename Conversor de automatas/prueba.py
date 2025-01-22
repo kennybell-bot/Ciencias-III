@@ -51,7 +51,7 @@ class AutomataVisualizer:
 
 if __name__ == "__main__":
     # Leer datos del autómata desde JSON
-    automaton_file = "automata.json"
+    automaton_file = "afd.json"
     automaton_data = read_automaton_from_json(automaton_file)
 
     # Inicializar la aplicación

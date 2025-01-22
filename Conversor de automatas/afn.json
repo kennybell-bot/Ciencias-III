@@ -1,0 +1,11 @@
+{
+    "states": ["q0", "q1", "q2"],
+    "alphabet": ["A", "B"],
+    "transitions": {
+        "q0": {"A": ["q1", "q2"], "B": ["q2"]},
+        "q1": {"A": ["q0"], "B": ["q1", "q2"]},
+        "q2": {"A": [], "B": ["q1"]}
+    },
+    "start_state": "q0",
+    "final_states": ["q2"]
+}
