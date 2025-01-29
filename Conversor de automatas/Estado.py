@@ -1,20 +1,22 @@
-from Conexion import Conexion
-
 class Estado:
     def __init__(self, id):
-        self.id = id
-        self.conexiones = []
+        self._id = id
+        self._conexiones = []
 
-    def agregarConexion(self, estadoLLegada, valor):
-        conexion = Conexion(self, estadoLLegada, valor)
-        self.conexiones.append(conexion)
+    # Getters
+    def get_id(self):
+        return self._id
 
-    def getConxiones(self):
-        return self.conexiones
-    
-    def getID(self):
-        return self.id
+    def get_conexiones(self):
+        return self._conexiones
 
-    def __str__(self):
-        conexiones_ids = [conexion.estadoLlegada.id for conexion in self.conexiones]
-        return f"Estado(id={self.id}, conexiones={conexiones_ids})"
+    # Setters
+    def set_id(self, id):
+        self._id = id
+
+    def set_conexiones(self, conexiones):
+        self._conexiones = conexiones
+
+    # Método para agregar una conexión
+    def agregar_conexion(self, conexion):
+        self._conexiones.append(conexion)

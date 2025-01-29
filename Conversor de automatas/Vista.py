@@ -3,98 +3,93 @@ from tkinter import ttk
 import networkx as nx
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from AutomataFinito import AutomataFinito
-from Estado import Estado
-from Conexion import Conexion
+from Controlador import Controlador  # Importar la clase Controlador
 
+class Ventana:
+    def __init__(self):
+        self.root = Tk()
+        self.root.title("Convertidor de automatas")
+        self.root.resizable(True, True)
+        self.root.geometry("800x600")
 
-#Inicializacion de la pantalla
-root = Tk()
-root.title("Convertidor de automatas")
-root.resizable(True, True)
-root.geometry("800x600") 
+        self.figure = plt.Figure(figsize=(5, 5), dpi=100)
+        self.ax = self.figure.add_subplot(111)
+        self.graph = nx.DiGraph()
+        self.pos = nx.spring_layout(self.graph)
+        nx.draw(self.graph, self.pos, ax=self.ax, with_labels=True, node_color='skyblue', node_size=2000, edge_color='k', font_size=16)
+        self.canvas = FigureCanvasTkAgg(self.figure, master=self.root)
+        self.canvas.get_tk_widget().pack()
+        self.canvas.draw()
 
+        self.crear_botones()
 
+    def crear_botones(self):
+        frame = Frame(self.root)
+        frame.pack(side=BOTTOM)
 
-#Creacion de la vizualiacion del automata
-figure = plt.Figure(figsize=(5, 5), dpi=100)
-ax = figure.add_subplot(111)
-graph = nx.DiGraph()  
-pos = nx.spring_layout(graph)
-nx.draw(graph, pos, ax=ax, with_labels=True, node_color='skyblue', node_size=2000, edge_color='k', font_size=16)
-canvas = FigureCanvasTkAgg(figure, master=root)
-canvas.get_tk_widget().pack()
-canvas.draw()
+        boton_agregar_nodo = Button(frame, text="Agregar Nodo", command=self.agregar_nodo)
+        boton_agregar_nodo.pack(side=LEFT)
 
-#Funciones para dibujar el grafo
-def agregarNodo(nodo_id):
-    graph.add_node(nodo_id)
-    actualizarGrafo()
+        boton_agregar_edge = Button(frame, text="Agregar Edge", command=self.agregar_edge)
+        boton_agregar_edge.pack(side=LEFT)
 
-def agregarEdge(nodo_partida, nodo_llegada, label):
-    graph.add_edge(nodo_partida, nodo_llegada, label=label)
-    actualizarGrafo()
+        boton_actualizar = Button(frame, text="Actualizar Automata", command=self.actualizar_grafo)
+        boton_actualizar.pack(side=LEFT)
 
-def actualizarGrafo():
-    ax.clear()
-    pos = nx.spring_layout(graph)
-    nx.draw(graph, pos, ax=ax, with_labels=True, node_color='skyblue', node_size=200, edge_color='k', font_size=6)
-    global edge_labels
-    edge_labels = nx.get_edge_attributes(graph, 'label')
-    nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels, ax=ax)
-    canvas.draw()
+        boton_convertir = Button(frame, text="Convertir Diagrama", command=self.convertir_diagrama)
+        boton_convertir.pack(side=LEFT)
 
-#Inicializacion del grafico
-labelOPcionesGrafos = Label(root, text="Seleccione el tipo de autómata que desea visualizar")
-combo = ttk.Combobox(root, values=["AFN", "AFD", "AFN-lamda"])
-botonInicializar = Button(root, text="Inicializar")
-labelOPcionesGrafos.pack()
-combo.pack()
+    def agregar_nodo(self):
+        nodo_id = str(len(self.graph.nodes) + 1)
+        self.graph.add_node(nodo_id)
+        self.actualizar_grafo()
 
-#Agregacion de conexion
-labelAgregarConexion = Label(root, text="Agregar conexion")
-labelEstadoPartida = Label(root, text="Estado de partida")
-entryEstadoPartida = Entry(root)
-labelEstadoConectado = Label(root, text="Estados conectados separados por coma")
-entryEstadoConectado = Entry(root)
-labelValorConexion = Label(root, text="Valor de la conexion")
-entryValorConexion = Entry(root)
-botonAgregarConexion = Button(root, text="Agregar")
-labelEstadoConectado.pack()
-entryEstadoConectado.pack()
-labelValorConexion.pack()   
-entryValorConexion.pack()   
-botonAgregarConexion.pack()
+    def agregar_edge(self):
+        if len(self.graph.nodes) >= 2:
+            self.ventana_emergente()
 
-def agreagarConexionNueva():
-    estadosConectados = entryEstadoConectado.get().split(",")
-    agregarEdge(estadosConectados[0], estadosConectados[1], entryValorConexion.get())
+    def ventana_emergente(self):
+        top = Toplevel(self.root)
+        top.title("Seleccionar Estados")
 
-botonAgregarConexion.config(command=agreagarConexionNueva)
+        Label(top, text="Estado Origen:").pack()
+        nodo_origen = ttk.Combobox(top, values=list(self.graph.nodes))
+        nodo_origen.pack()
 
-#Establecimiento del automata
-estados = list(graph.nodes)
-#Automata
-def generarAutomata():
-    agregarNodo("q0")
-    estados = list(graph.nodes)
-    conexiones = nx.get_edge_attributes(graph, 'label')
-    return AutomataFinito(Estado(estados[0]))
+        Label(top, text="Estado Destino:").pack()
+        nodo_destino = ttk.Combobox(top, values=list(self.graph.nodes))
+        nodo_destino.pack()
 
-automata = generarAutomata()
+        Label(top, text="Valor:").pack()
+        etiqueta = Entry(top)
+        etiqueta.pack()
 
-def agregarEstaodosAutomata():
-    for i in estados:
-        AutomataFinito.agregarEstado(Estado(i))
+        Button(top, text="Agregar", command=lambda: self.confirmar_agregar_edge(top, nodo_origen.get(), nodo_destino.get(), etiqueta.get())).pack()
 
-def prueba():
-    agregarEstaodosAutomata()
-    print("automata")
+    def confirmar_agregar_edge(self, top, nodo_origen, nodo_destino, etiqueta):
+        if nodo_origen and nodo_destino:
+            self.graph.add_edge(nodo_origen, nodo_destino, label=etiqueta)
+            self.actualizar_grafo()
+        top.destroy()
 
-    for i in automata.getEstados():
-        print(i)
+    def actualizar_grafo(self):
+        self.ax.clear()
+        self.pos = nx.spring_layout(self.graph)
+        nx.draw(self.graph, self.pos, ax=self.ax, with_labels=True, node_color='skyblue', node_size=2000, edge_color='k', font_size=16)
+        edge_labels = nx.get_edge_attributes(self.graph, 'label')
+        nx.draw_networkx_edge_labels(self.graph, self.pos, edge_labels=edge_labels, ax=self.ax, font_size=12)
+        self.canvas.draw()
 
-botonInicializar.config(command=prueba)
-botonInicializar.pack()
+    def convertir_diagrama(self):
+        controlador = Controlador()
+        controlador.adaptar_diagrama(self.graph)
 
-root.mainloop()
+    def getDiagrama(self):
+        return self.graph
+
+    def iniciar(self):
+        self.root.mainloop()
+
+if __name__ == "__main__":
+    ventana = Ventana()
+    ventana.iniciar()
