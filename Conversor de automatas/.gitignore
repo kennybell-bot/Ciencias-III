@@ -12,3 +12,6 @@ pycache/
 
 #Ignorar imagenes
 *.png
+
+#Ignorar pdf
+*.pdf
