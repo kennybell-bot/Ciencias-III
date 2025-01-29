@@ -1,5 +1,6 @@
 import json
 import os
+import subprocess
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from automaton_model import AFNLambdaAutomaton, AFNAutomaton, AFDAutomaton
@@ -79,10 +80,20 @@ class AutomatonApp:
             self.btn_convert_afn.config(state=tk.DISABLED)  # No hay más conversiones posibles
 
     def draw_automaton(self):
-        """Dibuja el autómata cargado."""
+        """Dibuja el autómata cargado y abre la imagen resultante."""
         if self.automaton:
-            draw_automaton(self.automaton, "origen")
-            messagebox.showinfo("Éxito", "El autómata original se ha guardado como 'origen.png'.")
+            file_path = draw_automaton(self.automaton, "origen")
+
+            # Abrir el archivo .png según el sistema operativo
+            try:
+                if os.name == "nt":  # Windows
+                    os.startfile(file_path)
+                elif os.uname().sysname == "Darwin":  # macOS
+                    subprocess.Popen(["open", file_path])
+                else:  # Linux
+                    subprocess.Popen(["xdg-open", file_path])
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo abrir la imagen:\n{e}")
 
     def convert_to_afn(self):
         """Convierte un AFN-λ a un AFN y lo visualiza."""

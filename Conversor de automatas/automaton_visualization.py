@@ -10,7 +10,7 @@ def draw_automaton(automaton: Automaton, output_file: str):
         output_file (str): Ruta del archivo de salida (sin extensión).
 
     Returns:
-        None
+        str: Ruta del archivo generado.
     """
     # Crear un nuevo objeto Digraph para cada llamada
     dot = Digraph(format="png")
@@ -31,8 +31,8 @@ def draw_automaton(automaton: Automaton, output_file: str):
     # Agregar el nodo de estado inicial
     dot.node("", shape="none", width="0", height="0", label="")
     dot.edge("", automaton.start_state)  # Conectar al estado inicial
-
-    # Guardar el grafo en el archivo de salida
-    dot.render(output_file, cleanup=True)
-
-    print(f"Automata dibujado y guardado en {output_file}.png")
+    
+    # Generar el grafo
+    file_path = dot.render(output_file, cleanup=True)  # Genera la imagen
+    print(f"Automata dibujado y guardado en {file_path}")
+    return file_path  # Retorna la ruta del archivo generado
