@@ -8,5 +8,10 @@ class AdaptadorDiagrama:
         nodos = list(automata.nodes)
         adyacencias = {}
         for nodo in automata.nodes:
-            adyacencias[nodo] = [(adj, automata[nodo][adj].get('label', '')) for adj in automata.adj[nodo]]
+            adyacencias[nodo] = {}
+            for adj in automata.adj[nodo]:
+                label = automata[nodo][adj].get('label', '')
+                if label not in adyacencias[nodo]:
+                    adyacencias[nodo][label] = []
+                adyacencias[nodo][label].append(adj)
         return nodos, adyacencias
