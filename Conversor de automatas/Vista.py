@@ -16,11 +16,12 @@ class Ventana:
         self.ax = self.figure.add_subplot(111)
         self.graph = nx.DiGraph()
         self.pos = nx.spring_layout(self.graph)
-        nx.draw(self.graph, self.pos, ax=self.ax, with_labels=True, node_color='skyblue', node_size=2000, edge_color='k', font_size=16)
+        nx.draw(self.graph, self.pos, ax=self.ax, with_labels=True, node_color='skyblue', node_size=1000, edge_color='k', font_size=10)
         self.canvas = FigureCanvasTkAgg(self.figure, master=self.root)
         self.canvas.get_tk_widget().pack()
         self.canvas.draw()
 
+        self.estados_finales = set()  # Conjunto para almacenar los estados finales
         self.crear_botones()
 
     def crear_botones(self):
@@ -38,6 +39,15 @@ class Ventana:
 
         boton_convertir = Button(frame, text="Convertir Diagrama", command=self.convertir_diagrama)
         boton_convertir.pack(side=LEFT)
+
+        boton_elegir_estados_finales = Button(frame, text="Elegir estados finales", command=self.ventana_elegir_estados_finales)
+        boton_elegir_estados_finales.pack(side=LEFT)
+
+        # Campo de texto y botón "Leer expresión"
+        self.expresion_entry = Entry(frame)
+        self.expresion_entry.pack(side=LEFT)
+        boton_leer_expresion = Button(frame, text="Leer expresión", command=self.leer_expresion)
+        boton_leer_expresion.pack(side=LEFT)
 
     def agregar_nodo(self):
         nodo_id = str(len(self.graph.nodes) + 1)
@@ -75,14 +85,53 @@ class Ventana:
     def actualizar_grafo(self):
         self.ax.clear()
         self.pos = nx.spring_layout(self.graph)
-        nx.draw(self.graph, self.pos, ax=self.ax, with_labels=True, node_color='skyblue', node_size=2000, edge_color='k', font_size=16)
+        
+        # Obtener los nodos y asignar colores
+        nodes = list(self.graph.nodes)
+        node_colors = []
+        for i, node in enumerate(nodes):
+            if i == 0:
+                node_colors.append('red')
+                self.graph.nodes[node]['color'] = 'red'
+            elif node in self.estados_finales:
+                node_colors.append('yellow')
+                self.graph.nodes[node]['color'] = 'yellow'
+            else:
+                node_colors.append('skyblue')
+                self.graph.nodes[node]['color'] = 'skyblue'
+        
+        nx.draw(self.graph, self.pos, ax=self.ax, with_labels=True, node_color=node_colors, node_size=1000, edge_color='k', font_size=10)
         edge_labels = nx.get_edge_attributes(self.graph, 'label')
-        nx.draw_networkx_edge_labels(self.graph, self.pos, edge_labels=edge_labels, ax=self.ax, font_size=12)
+        nx.draw_networkx_edge_labels(self.graph, self.pos, edge_labels=edge_labels, ax=self.ax, font_size=8)
         self.canvas.draw()
 
     def convertir_diagrama(self):
         controlador = Controlador()
         controlador.adaptar_diagrama(self.graph)
+
+    def ventana_elegir_estados_finales(self):
+        top = Toplevel(self.root)
+        top.title("Elegir Estados Finales")
+
+        # Obtener los nodos que no son de color rojo
+        nodes = list(self.graph.nodes)
+        non_red_nodes = [nodes[i] for i in range(1, len(nodes))]
+
+        Label(top, text="Seleccionar Estado Final:").pack()
+        estado_final = ttk.Combobox(top, values=non_red_nodes)
+        estado_final.pack()
+
+        Button(top, text="Agregar", command=lambda: self.agregar_estado_final(estado_final.get(), top)).pack()
+
+    def agregar_estado_final(self, estado_final, top):
+        if estado_final:
+            self.estados_finales.add(estado_final)
+            self.actualizar_grafo()
+        top.destroy()
+
+    def leer_expresion(self):
+        expresion = self.expresion_entry.get()
+        print(f"Expresión leída: {expresion}")
 
     def getDiagrama(self):
         return self.graph
