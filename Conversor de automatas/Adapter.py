@@ -30,3 +30,14 @@ class AdaptadorDiagrama:
 
         alfabeto = list(alfabeto)  # Convertimos el conjunto a una lista
         return nodos, adyacencias, alfabeto, estado_inicial, estados_finales
+
+    def convertir_a_grafo(self, automaton):
+        G = nx.DiGraph()
+        for estado in automaton.states:
+            color = 'red' if estado == automaton.start_state else 'yellow' if estado in automaton.final_states else 'skyblue'
+            G.add_node(estado, color=color)
+        for estado, transiciones in automaton.transitions.items():
+            for simbolo, destinos in transiciones.items():
+                for destino in destinos:
+                    G.add_edge(estado, destino, label=simbolo)
+        return G

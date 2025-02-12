@@ -4,6 +4,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from Controlador import Controlador  # Importar la clase Controlador
+from Adapter import AdaptadorDiagrama  # Importar la clase AdaptadorDiagrama
 
 class Ventana:
     def __init__(self):
@@ -22,32 +23,28 @@ class Ventana:
         self.canvas.draw()
 
         self.estados_finales = set()  # Conjunto para almacenar los estados finales
+        self.tipo_automata = StringVar()
+        self.tipo_automata.set("AFD")  # Valor por defecto
         self.crear_botones()
 
     def crear_botones(self):
         frame = Frame(self.root)
         frame.pack(side=BOTTOM)
 
-        boton_agregar_nodo = Button(frame, text="Agregar Nodo", command=self.agregar_nodo)
+        boton_agregar_nodo = Button(frame, text="Agregar Estado", command=self.agregar_nodo)
         boton_agregar_nodo.pack(side=LEFT)
 
-        boton_agregar_edge = Button(frame, text="Agregar Edge", command=self.agregar_edge)
+        boton_agregar_edge = Button(frame, text="Agregar Transición", command=self.agregar_edge)
         boton_agregar_edge.pack(side=LEFT)
 
         boton_actualizar = Button(frame, text="Actualizar Automata", command=self.actualizar_grafo)
         boton_actualizar.pack(side=LEFT)
 
-        boton_convertir = Button(frame, text="Convertir Diagrama", command=self.convertir_diagrama)
+        boton_convertir = Button(frame, text="Convertir Automata", command=self.ventana_convertir_diagrama)
         boton_convertir.pack(side=LEFT)
 
         boton_elegir_estados_finales = Button(frame, text="Elegir estados finales", command=self.ventana_elegir_estados_finales)
         boton_elegir_estados_finales.pack(side=LEFT)
-
-        # Campo de texto y botón "Leer expresión"
-        self.expresion_entry = Entry(frame)
-        self.expresion_entry.pack(side=LEFT)
-        boton_leer_expresion = Button(frame, text="Leer expresión", command=self.leer_expresion)
-        boton_leer_expresion.pack(side=LEFT)
 
     def agregar_nodo(self):
         nodo_id = str(len(self.graph.nodes) + 1)
@@ -109,6 +106,31 @@ class Ventana:
         controlador = Controlador()
         controlador.adaptar_diagrama(self.graph)
 
+    def ventana_convertir_diagrama(self):
+        top = Toplevel(self.root)
+        top.title("Convertir Automata")
+
+        Label(top, text="Seleccionar Tipo de Automata Ingresado:").pack()
+        opciones_automata = ["AFD", "AFND", "AFN-λ"]
+        menu_automata_ingresado = ttk.Combobox(top, values=opciones_automata)
+        menu_automata_ingresado.pack()
+
+        Label(top, text="Seleccionar Tipo de Conversión:").pack()
+        menu_automata_conversion = ttk.Combobox(top, values=["AFD", "AFND", "AFN-λ"])
+        menu_automata_conversion.pack()
+
+        Button(top, text="Convertir", command=lambda: self.convertir_diagrama_seleccion(menu_automata_ingresado.get(), menu_automata_conversion.get(), top)).pack()
+
+    def convertir_diagrama_seleccion(self, tipo_ingresado, tipo_conversion, top):
+        print(f"Convertir de: {tipo_ingresado} a: {tipo_conversion}")
+        controlador = Controlador()
+        automaton = controlador.adaptar_diagrama(self.graph, tipo_ingresado, tipo_conversion)
+        if automaton:
+            adaptador = AdaptadorDiagrama()
+            self.graph = adaptador.convertir_a_grafo(automaton)
+            self.actualizar_grafo()
+        top.destroy()
+
     def ventana_elegir_estados_finales(self):
         top = Toplevel(self.root)
         top.title("Elegir Estados Finales")
@@ -128,10 +150,6 @@ class Ventana:
             self.estados_finales.add(estado_final)
             self.actualizar_grafo()
         top.destroy()
-
-    def leer_expresion(self):
-        expresion = self.expresion_entry.get()
-        print(f"Expresión leída: {expresion}")
 
     def getDiagrama(self):
         return self.graph
